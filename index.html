@@ -381,44 +381,66 @@
     }
 
     function submitEmail() {
-      const email = document.getElementById('hero-email').value;
-      if (!email || !email.includes('@')) {
-        document.getElementById('hero-email').focus();
-        return;
-      }
+  const email = document.getElementById('hero-email').value;
+  if (!email || !email.includes('@')) {
+    document.getElementById('hero-email').focus();
+    return;
+  }
 
-      if (MAILCHIMP_URL !== 'YOUR_MAILCHIMP_URL_HERE') {
-        fetch(`${MAILCHIMP_URL}&EMAIL=${encodeURIComponent(email)}`, { method: 'POST', mode: 'no-cors' });
-      }
+  const btn = document.getElementById('submit-btn');
+  const input = document.getElementById('hero-email');
+  const note = document.getElementById('form-note');
 
-      const btn = document.getElementById('submit-btn');
-      const input = document.getElementById('hero-email');
-      const note = document.getElementById('form-note');
+  const submitted = JSON.parse(localStorage.getItem('kintide_emails') || '[]');
 
-      // Disable input
-      input.disabled = true;
-      input.style.transition = 'opacity 0.3s ease';
-      input.style.opacity = '0.35';
-      btn.disabled = true;
-      btn.style.width = btn.offsetWidth + 'px';
+  if (submitted.includes(email.toLowerCase())) {
+    // Duplicate email
+    btn.style.width = btn.offsetWidth + 'px';
+    btn.disabled = true;
+    input.disabled = true;
+    input.style.transition = 'opacity 0.3s ease';
+    input.style.opacity = '0.35';
+    btn.style.transition = 'background 0.4s ease, transform 0.1s ease';
+    btn.style.background = '#5BAD8A';
+    btn.textContent = "You're in 🌊";
+    note.style.transition = 'opacity 0.4s ease';
+    note.style.opacity = '0';
+    setTimeout(() => {
+      note.textContent = "You're already in — we'll let you know the moment we launch.";
+      note.style.opacity = '1';
+      note.style.visibility = 'visible';
+    }, 400);
+    return;
+  }
 
-      // Confetti burst
-      launchConfetti(btn);
+  if (MAILCHIMP_URL !== 'YOUR_MAILCHIMP_URL_HERE') {
+    fetch(`${MAILCHIMP_URL}&EMAIL=${encodeURIComponent(email)}`, { method: 'POST', mode: 'no-cors' });
+  }
 
-      // Animate button
-      btn.style.transition = 'background 0.4s ease, transform 0.1s ease';
-      btn.style.transform = 'scale(0.97)';
+  submitted.push(email.toLowerCase());
+  localStorage.setItem('kintide_emails', JSON.stringify(submitted));
 
-      setTimeout(() => {
-        btn.style.transform = 'scale(1)';
-        btn.style.background = '#5BAD8A';
-        btn.textContent = "You're on the list";
-        // Fade out the note
-        note.style.transition = 'opacity 0.4s ease';
-        note.style.opacity = '0';
-        setTimeout(() => note.style.visibility = 'hidden', 400);
-      }, 150);
-    }
+  input.disabled = true;
+  input.style.transition = 'opacity 0.3s ease';
+  input.style.opacity = '0.35';
+  btn.disabled = true;
+  btn.style.width = btn.offsetWidth + 'px';
+
+  launchConfetti(btn);
+
+  btn.style.transition = 'background 0.4s ease, transform 0.1s ease';
+  btn.style.transform = 'scale(0.97)';
+
+  setTimeout(() => {
+    btn.style.transform = 'scale(1)';
+    btn.style.background = '#5BAD8A';
+    btn.textContent = "You're on the list";
+    note.style.transition = 'opacity 0.4s ease';
+    note.style.opacity = '0';
+    setTimeout(() => note.style.visibility = 'hidden', 400);
+  }, 150);
+}
+
 
     document.getElementById('hero-email').addEventListener('keydown', e => {
       if (e.key === 'Enter') submitEmail();
